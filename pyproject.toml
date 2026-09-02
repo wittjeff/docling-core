@@ -155,7 +155,7 @@ target-version = "py310"
 line-length = 120
 respect-gitignore = true
 exclude = [
-    "test/data/**"
+    "tests/data/**"
 ]
 
 [tool.ruff.format]
@@ -204,7 +204,7 @@ convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["E402", "F401"]
-"test/*.py" = ["ASYNC"] # Disable ASYNC check for tests
+"tests/*.py" = ["ASYNC"] # Disable ASYNC check for tests
 "*.ipynb" = ["I"]  # Disable import sorting for notebooks
 
 [tool.ruff.lint.mccabe]
@@ -229,7 +229,7 @@ namespace_packages = true
 show_error_codes = true
 python_version = "3.10"
 plugins = ["pydantic.mypy"]
-exclude = "(^|/)test/data/.*"
+exclude = "(^|/)tests/data/.*"
 
 [[tool.mypy.overrides]]
 module = [
@@ -248,7 +248,7 @@ module = [
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["test.*", "tests.*"]  # `tests.*` is packages/dclq/tests
+module = ["tests.*"]
 disallow_untyped_defs = false
 
 [tool.semantic_release]
