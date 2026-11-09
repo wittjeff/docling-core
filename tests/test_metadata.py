@@ -5,16 +5,21 @@ import pytest
 from pydantic import BaseModel, ValidationError
 from typing_extensions import override
 
-from docling_core.transforms.serializer.base import SerializationResult
+from docling_core.transforms.serializer.base import BaseDocSerializer, SerializationResult
 from docling_core.transforms.serializer.common import create_ser_result
+from docling_core.transforms.serializer.doclang import DocLangDocSerializer
+from docling_core.transforms.serializer.doctags import DocTagsDocSerializer
 from docling_core.transforms.serializer.html import HTMLDocSerializer, HTMLParams
+from docling_core.transforms.serializer.latex import LaTeXDocSerializer
 from docling_core.transforms.serializer.markdown import (
     MarkdownDocSerializer,
     MarkdownMetaSerializer,
     MarkdownParams,
 )
+from docling_core.transforms.serializer.plain_text import PlainTextDocSerializer
 from docling_core.types.doc import (
     BaseMeta,
+    ConformanceMetaField,
     DocItem,
     DocItemLabel,
     DoclingDocument,
@@ -423,3 +428,143 @@ def test_keywords_topics_required_values() -> None:
         TopicsMetaField(values=34)
     with pytest.raises(ValidationError, match="valid string"):
         TopicsMetaField(values=[34])
+
+
+# ---------------------------------------------------------------------------
+# BaseMeta.conformance (ConformanceMetaField)
+# ---------------------------------------------------------------------------
+
+_WTPDF_ACCESSIBILITY = "http://pdfa.org/declarations/wtpdf/#accessibility1.0"
+_WTPDF_REUSE = "http://pdfa.org/declarations/wtpdf/#reuse1.0"
+_ISO_32005 = "https://pdfa.org/declarations#iso32005"
+
+
+def _doc_with_conformance(conformance: ConformanceMetaField | None) -> DoclingDocument:
+    doc = DoclingDocument(name="conformance")
+    doc.add_heading(text="Heading")
+    doc.add_text(label=DocItemLabel.TEXT, text="Body text.")
+    if conformance is not None:
+        doc.body.meta = BaseMeta(conformance=conformance)
+    return doc
+
+
+def test_conformance_round_trips_on_body_meta() -> None:
+    conformance = ConformanceMetaField(
+        tagged=True,
+        pdfua_part=2,
+        pdfua_rev=2024,
+        pdfa_part=4,
+        pdfa_conformance="F",
+        declarations=[_WTPDF_ACCESSIBILITY, _ISO_32005],
+        structure_used=True,
+    )
+    doc = _doc_with_conformance(conformance)
+
+    dumped = doc.export_to_dict()
+    assert dumped["body"]["meta"] == {
+        "conformance": {
+            "tagged": True,
+            "pdfua_part": 2,
+            "pdfua_rev": 2024,
+            "pdfa_part": 4,
+            "pdfa_conformance": "F",
+            "declarations": [_WTPDF_ACCESSIBILITY, _ISO_32005],
+            "structure_used": True,
+        }
+    }
+
+    reloaded = DoclingDocument.model_validate(dumped)
+    assert reloaded.body.meta is not None
+    assert reloaded.body.meta.conformance == conformance
+    assert reloaded.body.meta.conformance.pdfua_part == 2
+    assert reloaded.export_to_dict() == dumped
+
+    # A document without the field serializes without it.
+    plain = _doc_with_conformance(None).export_to_dict()
+    assert "meta" not in plain["body"]
+
+
+def test_conformance_defaults_describe_an_untagged_file() -> None:
+    """A bare record means: not tagged, nothing declared, model path only."""
+    conformance = ConformanceMetaField()
+    assert conformance.tagged is False
+    assert conformance.pdfua_part is None
+    assert conformance.pdfua_rev is None
+    assert conformance.pdfa_part is None
+    assert conformance.pdfa_conformance is None
+    assert conformance.declarations == []
+    assert conformance.structure_used is False
+
+    dumped = _doc_with_conformance(conformance).export_to_dict()
+    assert dumped["body"]["meta"]["conformance"] == {"tagged": False, "declarations": [], "structure_used": False}
+
+    # Documented behaviour (not a design goal): a record made only of defaults still counts as
+    # content, because ``_value_has_content`` is true for any non-None scalar. Producers attach
+    # the record for PDF input only.
+    assert BaseMeta(conformance=conformance).has_content()
+    assert not BaseMeta().has_content()
+
+
+def test_conformance_declarations_keep_file_order() -> None:
+    """Declarations are the ``pdfd:conformsTo`` URIs in file order; they are not sorted or deduplicated."""
+    conformance = ConformanceMetaField(declarations=[_ISO_32005, _WTPDF_REUSE, _WTPDF_ACCESSIBILITY])
+    doc = _doc_with_conformance(conformance)
+
+    reloaded = DoclingDocument.model_validate(doc.export_to_dict())
+    assert reloaded.body.meta is not None and reloaded.body.meta.conformance is not None
+    assert reloaded.body.meta.conformance.declarations == [_ISO_32005, _WTPDF_REUSE, _WTPDF_ACCESSIBILITY]
+
+
+@pytest.mark.parametrize(
+    "make_serializer",
+    [
+        pytest.param(lambda doc: HTMLDocSerializer(doc=doc), id="html"),
+        pytest.param(lambda doc: MarkdownDocSerializer(doc=doc), id="markdown"),
+        pytest.param(
+            lambda doc: MarkdownDocSerializer(doc=doc, params=MarkdownParams(mark_meta=True)),
+            id="markdown-marked",
+        ),
+        pytest.param(lambda doc: PlainTextDocSerializer(doc=doc), id="plain-text"),
+        pytest.param(lambda doc: DocLangDocSerializer(doc=doc), id="doclang"),
+        pytest.param(lambda doc: DocTagsDocSerializer(doc=doc), id="doctags"),
+        pytest.param(lambda doc: LaTeXDocSerializer(doc=doc), id="latex"),
+    ],
+)
+def test_conformance_is_not_exported_as_content(make_serializer: Any) -> None:
+    """Exports of a document with ``body.meta.conformance`` are byte-identical to exports without it.
+
+    The record is a claim about the source file, not content, and HTML has no element for it. In
+    particular the fallthrough ``str(field_val)`` branches must not print the pydantic repr.
+    """
+    conformance = ConformanceMetaField(
+        tagged=True,
+        pdfua_part=2,
+        pdfua_rev=2024,
+        declarations=[_WTPDF_ACCESSIBILITY],
+        structure_used=True,
+    )
+    without = _doc_with_conformance(None)
+    with_body_meta = _doc_with_conformance(conformance)
+
+    ser_without: BaseDocSerializer = make_serializer(without)
+    ser_with: BaseDocSerializer = make_serializer(with_body_meta)
+    assert ser_with.serialize().text == ser_without.serialize().text
+
+
+def test_conformance_on_an_item_emits_no_html_meta_block() -> None:
+    """``HTMLMetaSerializer`` opens a ``<details class="docling-meta">`` block only for renderable fields."""
+    doc = _doc_with_conformance(None)
+    doc.texts[1].meta = BaseMeta(conformance=ConformanceMetaField(tagged=True, pdfua_part=1))
+    html = HTMLDocSerializer(doc=doc).serialize().text
+
+    assert '<details class="docling-meta">' not in html
+    assert "pdfua_part" not in html
+    assert "tagged=True" not in html
+
+
+def test_older_document_without_conformance_loads(dummy_doc_with_meta: DoclingDocument) -> None:
+    """A document written before the field existed loads unchanged: the slot is ``None`` and stays out of the dump."""
+    assert dummy_doc_with_meta.body.meta is not None
+    assert dummy_doc_with_meta.body.meta.conformance is None
+    assert "conformance" not in dummy_doc_with_meta.export_to_dict()["body"]["meta"]
+    assert MetaFieldName.CONFORMANCE.value in BaseMeta.model_fields
