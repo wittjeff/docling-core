@@ -100,7 +100,7 @@ from docling_core.types.doc.common.reference import (
     RefItem,
 )
 from docling_core.types.doc.common.scalars import CharSpan, LevelNumber, Uint64
-from docling_core.types.doc.common.source import BaseSource, SourceType, TrackSource
+from docling_core.types.doc.common.source import BaseSource, PdfStructureSource, SourceType, TrackSource
 from docling_core.types.doc.doctags import DocTagsDocument, DocTagsPage
 from docling_core.types.doc.items.code import CodeItem
 from docling_core.types.doc.items.content import ContentItem
@@ -1512,6 +1512,7 @@ class DoclingDocument(BaseModel):
         name: str | None = None,
         parent: NodeItem | None = None,
         content_layer: ContentLayer | None = None,
+        source: SourceType | None = None,
     ) -> ListGroup:
         """add_list_group."""
         _parent = parent or self.body
@@ -1521,6 +1522,8 @@ class DoclingDocument(BaseModel):
             group.name = name
         if content_layer:
             group.content_layer = content_layer
+        if source is not None:
+            group.source.append(source)
 
         self.groups.append(group)
         _parent.children.append(RefItem(cref=cref))
@@ -1559,6 +1562,7 @@ class DoclingDocument(BaseModel):
         name: str | None = None,
         parent: NodeItem | None = None,
         content_layer: ContentLayer | None = None,
+        source: SourceType | None = None,
     ) -> InlineGroup:
         """Add an inline group, whose children are runs of one visual line of text.
 
@@ -1580,6 +1584,8 @@ class DoclingDocument(BaseModel):
             group.name = name
         if content_layer:
             group.content_layer = content_layer
+        if source is not None:
+            group.source.append(source)
 
         self.groups.append(group)
         _parent.children.append(RefItem(cref=cref))
@@ -1591,12 +1597,14 @@ class DoclingDocument(BaseModel):
         name: str | None = None,
         parent: NodeItem | None = None,
         content_layer: ContentLayer | None = None,
+        source: SourceType | None = None,
     ) -> GroupItem:
         """add_group.
 
         :param label: Optional[GroupLabel]:  (Default value = None)
         :param name: Optional[str]:  (Default value = None)
         :param parent: Optional[NodeItem]:  (Default value = None)
+        :param source: Optional[SourceType]:  (Default value = None) what produced this group in the original asset
 
         """
         if label in [GroupLabel.LIST, GroupLabel.ORDERED_LIST]:
@@ -1604,12 +1612,14 @@ class DoclingDocument(BaseModel):
                 name=name,
                 parent=parent,
                 content_layer=content_layer,
+                source=source,
             )
         elif label == GroupLabel.INLINE:
             return self.add_inline_group(
                 name=name,
                 parent=parent,
                 content_layer=content_layer,
+                source=source,
             )
 
         if not parent:
@@ -1625,6 +1635,8 @@ class DoclingDocument(BaseModel):
             group.label = label
         if content_layer:
             group.content_layer = content_layer
+        if source is not None:
+            group.source.append(source)
 
         self.groups.append(group)
         parent.children.append(RefItem(cref=cref))
@@ -5968,6 +5980,19 @@ class DoclingDocument(BaseModel):
                             for graph_cell in new_item.graph.cells:
                                 if graph_cell.prov is not None:
                                     graph_cell.prov.page_no += page_delta
+
+                    # structure sources follow their page like provenance: entries on filtered-out
+                    # pages are dropped, the rest are shifted; entries without a page are kept as-is
+                    new_item.source = [
+                        src
+                        if not isinstance(src, PdfStructureSource) or src.page_no is None
+                        else src.model_copy(update={"page_no": src.page_no + page_delta})
+                        for src in new_item.source
+                        if not isinstance(src, PdfStructureSource)
+                        or src.page_no is None
+                        or page_nrs is None
+                        or src.page_no in page_nrs
+                    ]
 
                     if item.parent:
                         # set item's parent

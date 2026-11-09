@@ -1,6 +1,6 @@
 """Base document-tree node items: NodeItem, DocItem, FloatingItem."""
 
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING, Annotated, Optional
 
 from PIL import Image as PILImage
@@ -19,6 +19,14 @@ if TYPE_CHECKING:
     from docling_core.types.doc.document import DoclingDocument
 
 
+def _drop_empty_lists(dumped: dict, fields: Iterable[str]) -> dict:
+    """Remove the given keys from a serialized node when their value is an empty list."""
+    for field in fields:
+        if dumped.get(field) == []:
+            del dumped[field]
+    return dumped
+
+
 class NodeItem(BaseModel):
     """NodeItem."""
 
@@ -31,6 +39,18 @@ class NodeItem(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     meta: BaseMeta | None = None
+    source: Annotated[
+        list[SourceType],
+        Field(
+            description="What in the original asset produced this node: a media track cue or a tagged-PDF "
+            "structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page."
+        ),
+    ] = []
+
+    @model_serializer(mode="wrap")
+    def _custom_pydantic_serialize(self, handler: SerializerFunctionWrapHandler) -> dict:
+        # suppress serializing the source list when empty:
+        return _drop_empty_lists(handler(self), ("source",))
 
     def get_ref(self) -> RefItem:
         """get_ref."""
@@ -121,24 +141,12 @@ class DocItem(NodeItem):
 
     label: DocItemLabel
     prov: list[ProvenanceItem] = []
-    source: Annotated[
-        list[SourceType],
-        Field(
-            description="The provenance of this document item. Currently, it is only used for media track provenance."
-        ),
-    ] = []
     comments: list[FineRef] = []  # References to comment items annotating this content
 
     @model_serializer(mode="wrap")
     def _custom_pydantic_serialize(self, handler: SerializerFunctionWrapHandler) -> dict:
-        dumped = handler(self)
-
         # suppress serializing comment and source lists when empty:
-        for field in {"comments", "source"}:
-            if dumped.get(field) == []:
-                del dumped[field]
-
-        return dumped
+        return _drop_empty_lists(handler(self), ("comments", "source"))
 
     def get_location_tokens(
         self,

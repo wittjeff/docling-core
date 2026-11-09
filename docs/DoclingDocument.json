@@ -314,6 +314,29 @@
           ],
           "default": null
         },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
+        },
         "label": {
           "const": "code",
           "default": "code",
@@ -326,25 +349,6 @@
             "$ref": "#/$defs/ProvenanceItem"
           },
           "title": "Prov",
-          "type": "array"
-        },
-        "source": {
-          "default": [],
-          "description": "The provenance of this document item. Currently, it is only used for media track provenance.",
-          "items": {
-            "discriminator": {
-              "mapping": {
-                "track": "#/$defs/TrackSource"
-              },
-              "propertyName": "kind"
-            },
-            "oneOf": [
-              {
-                "$ref": "#/$defs/TrackSource"
-              }
-            ]
-          },
-          "title": "Source",
           "type": "array"
         },
         "comments": {
@@ -391,6 +395,26 @@
           ],
           "default": null,
           "title": "Hyperlink"
+        },
+        "text_provenance": {
+          "anyOf": [
+            {
+              "enum": [
+                "encoded",
+                "actual_text",
+                "mixed",
+                "ocr",
+                "generated"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where `text` came from. `encoded`: the text encoded in the source (PDF glyphs through the font's Unicode mapping, or the text of a DOCX, HTML or EPUB element). `actual_text`: the whole of `text` is an /ActualText substitution (ISO 32000-2, 14.9.4). `mixed`: part of `text` is substituted (ligatures, soft hyphens, drop caps). `ocr`: produced by OCR. `generated`: produced by a model rather than read. None means not recorded.",
+          "title": "Text Provenance"
         },
         "captions": {
           "default": [],
@@ -867,6 +891,29 @@
           ],
           "default": null
         },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
+        },
         "label": {
           "const": "field_heading",
           "default": "field_heading",
@@ -879,25 +926,6 @@
             "$ref": "#/$defs/ProvenanceItem"
           },
           "title": "Prov",
-          "type": "array"
-        },
-        "source": {
-          "default": [],
-          "description": "The provenance of this document item. Currently, it is only used for media track provenance.",
-          "items": {
-            "discriminator": {
-              "mapping": {
-                "track": "#/$defs/TrackSource"
-              },
-              "propertyName": "kind"
-            },
-            "oneOf": [
-              {
-                "$ref": "#/$defs/TrackSource"
-              }
-            ]
-          },
-          "title": "Source",
           "type": "array"
         },
         "comments": {
@@ -944,6 +972,26 @@
           ],
           "default": null,
           "title": "Hyperlink"
+        },
+        "text_provenance": {
+          "anyOf": [
+            {
+              "enum": [
+                "encoded",
+                "actual_text",
+                "mixed",
+                "ocr",
+                "generated"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where `text` came from. `encoded`: the text encoded in the source (PDF glyphs through the font's Unicode mapping, or the text of a DOCX, HTML or EPUB element). `actual_text`: the whole of `text` is an /ActualText substitution (ISO 32000-2, 14.9.4). `mixed`: part of `text` is substituted (ligatures, soft hyphens, drop caps). `ocr`: produced by OCR. `generated`: produced by a model rather than read. None means not recorded.",
+          "title": "Text Provenance"
         },
         "level": {
           "default": 1,
@@ -1003,6 +1051,29 @@
           ],
           "default": null
         },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
+        },
         "label": {
           "const": "field_item",
           "default": "field_item",
@@ -1015,25 +1086,6 @@
             "$ref": "#/$defs/ProvenanceItem"
           },
           "title": "Prov",
-          "type": "array"
-        },
-        "source": {
-          "default": [],
-          "description": "The provenance of this document item. Currently, it is only used for media track provenance.",
-          "items": {
-            "discriminator": {
-              "mapping": {
-                "track": "#/$defs/TrackSource"
-              },
-              "propertyName": "kind"
-            },
-            "oneOf": [
-              {
-                "$ref": "#/$defs/TrackSource"
-              }
-            ]
-          },
-          "title": "Source",
           "type": "array"
         },
         "comments": {
@@ -1093,6 +1145,29 @@
           ],
           "default": null
         },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
+        },
         "label": {
           "const": "field_region",
           "default": "field_region",
@@ -1105,25 +1180,6 @@
             "$ref": "#/$defs/ProvenanceItem"
           },
           "title": "Prov",
-          "type": "array"
-        },
-        "source": {
-          "default": [],
-          "description": "The provenance of this document item. Currently, it is only used for media track provenance.",
-          "items": {
-            "discriminator": {
-              "mapping": {
-                "track": "#/$defs/TrackSource"
-              },
-              "propertyName": "kind"
-            },
-            "oneOf": [
-              {
-                "$ref": "#/$defs/TrackSource"
-              }
-            ]
-          },
-          "title": "Source",
           "type": "array"
         },
         "comments": {
@@ -1183,6 +1239,29 @@
           ],
           "default": null
         },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
+        },
         "label": {
           "const": "field_value",
           "default": "field_value",
@@ -1195,25 +1274,6 @@
             "$ref": "#/$defs/ProvenanceItem"
           },
           "title": "Prov",
-          "type": "array"
-        },
-        "source": {
-          "default": [],
-          "description": "The provenance of this document item. Currently, it is only used for media track provenance.",
-          "items": {
-            "discriminator": {
-              "mapping": {
-                "track": "#/$defs/TrackSource"
-              },
-              "propertyName": "kind"
-            },
-            "oneOf": [
-              {
-                "$ref": "#/$defs/TrackSource"
-              }
-            ]
-          },
-          "title": "Source",
           "type": "array"
         },
         "comments": {
@@ -1260,6 +1320,26 @@
           ],
           "default": null,
           "title": "Hyperlink"
+        },
+        "text_provenance": {
+          "anyOf": [
+            {
+              "enum": [
+                "encoded",
+                "actual_text",
+                "mixed",
+                "ocr",
+                "generated"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where `text` came from. `encoded`: the text encoded in the source (PDF glyphs through the font's Unicode mapping, or the text of a DOCX, HTML or EPUB element). `actual_text`: the whole of `text` is an /ActualText substitution (ISO 32000-2, 14.9.4). `mixed`: part of `text` is substituted (ligatures, soft hyphens, drop caps). `ocr`: produced by OCR. `generated`: produced by a model rather than read. None means not recorded.",
+          "title": "Text Provenance"
         },
         "kind": {
           "default": "read_only",
@@ -1479,6 +1559,29 @@
           ],
           "default": null
         },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
+        },
         "label": {
           "const": "form",
           "default": "form",
@@ -1491,25 +1594,6 @@
             "$ref": "#/$defs/ProvenanceItem"
           },
           "title": "Prov",
-          "type": "array"
-        },
-        "source": {
-          "default": [],
-          "description": "The provenance of this document item. Currently, it is only used for media track provenance.",
-          "items": {
-            "discriminator": {
-              "mapping": {
-                "track": "#/$defs/TrackSource"
-              },
-              "propertyName": "kind"
-            },
-            "oneOf": [
-              {
-                "$ref": "#/$defs/TrackSource"
-              }
-            ]
-          },
-          "title": "Source",
           "type": "array"
         },
         "comments": {
@@ -1640,6 +1724,29 @@
           ],
           "default": null
         },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
+        },
         "label": {
           "const": "formula",
           "default": "formula",
@@ -1652,25 +1759,6 @@
             "$ref": "#/$defs/ProvenanceItem"
           },
           "title": "Prov",
-          "type": "array"
-        },
-        "source": {
-          "default": [],
-          "description": "The provenance of this document item. Currently, it is only used for media track provenance.",
-          "items": {
-            "discriminator": {
-              "mapping": {
-                "track": "#/$defs/TrackSource"
-              },
-              "propertyName": "kind"
-            },
-            "oneOf": [
-              {
-                "$ref": "#/$defs/TrackSource"
-              }
-            ]
-          },
-          "title": "Source",
           "type": "array"
         },
         "comments": {
@@ -1717,6 +1805,26 @@
           ],
           "default": null,
           "title": "Hyperlink"
+        },
+        "text_provenance": {
+          "anyOf": [
+            {
+              "enum": [
+                "encoded",
+                "actual_text",
+                "mixed",
+                "ocr",
+                "generated"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where `text` came from. `encoded`: the text encoded in the source (PDF glyphs through the font's Unicode mapping, or the text of a DOCX, HTML or EPUB element). `actual_text`: the whole of `text` is an /ActualText substitution (ISO 32000-2, 14.9.4). `mixed`: part of `text` is substituted (ligatures, soft hyphens, drop caps). `ocr`: produced by OCR. `generated`: produced by a model rather than read. None means not recorded.",
+          "title": "Text Provenance"
         }
       },
       "required": [
@@ -1886,6 +1994,29 @@
             }
           ],
           "default": null
+        },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
         },
         "name": {
           "default": "group",
@@ -2195,6 +2326,29 @@
           ],
           "default": null
         },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
+        },
         "name": {
           "default": "group",
           "title": "Name",
@@ -2256,6 +2410,29 @@
           ],
           "default": null
         },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
+        },
         "label": {
           "const": "key_value_region",
           "default": "key_value_region",
@@ -2268,25 +2445,6 @@
             "$ref": "#/$defs/ProvenanceItem"
           },
           "title": "Prov",
-          "type": "array"
-        },
-        "source": {
-          "default": [],
-          "description": "The provenance of this document item. Currently, it is only used for media track provenance.",
-          "items": {
-            "discriminator": {
-              "mapping": {
-                "track": "#/$defs/TrackSource"
-              },
-              "propertyName": "kind"
-            },
-            "oneOf": [
-              {
-                "$ref": "#/$defs/TrackSource"
-              }
-            ]
-          },
-          "title": "Source",
           "type": "array"
         },
         "comments": {
@@ -2455,6 +2613,29 @@
           ],
           "default": null
         },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
+        },
         "name": {
           "default": "group",
           "title": "Name",
@@ -2516,6 +2697,29 @@
           ],
           "default": null
         },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
+        },
         "label": {
           "const": "list_item",
           "default": "list_item",
@@ -2528,25 +2732,6 @@
             "$ref": "#/$defs/ProvenanceItem"
           },
           "title": "Prov",
-          "type": "array"
-        },
-        "source": {
-          "default": [],
-          "description": "The provenance of this document item. Currently, it is only used for media track provenance.",
-          "items": {
-            "discriminator": {
-              "mapping": {
-                "track": "#/$defs/TrackSource"
-              },
-              "propertyName": "kind"
-            },
-            "oneOf": [
-              {
-                "$ref": "#/$defs/TrackSource"
-              }
-            ]
-          },
-          "title": "Source",
           "type": "array"
         },
         "comments": {
@@ -2593,6 +2778,26 @@
           ],
           "default": null,
           "title": "Hyperlink"
+        },
+        "text_provenance": {
+          "anyOf": [
+            {
+              "enum": [
+                "encoded",
+                "actual_text",
+                "mixed",
+                "ocr",
+                "generated"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where `text` came from. `encoded`: the text encoded in the source (PDF glyphs through the font's Unicode mapping, or the text of a DOCX, HTML or EPUB element). `actual_text`: the whole of `text` is an /ActualText substitution (ISO 32000-2, 14.9.4). `mixed`: part of `text` is substituted (ligatures, soft hyphens, drop caps). `ocr`: produced by OCR. `generated`: produced by a model rather than read. None means not recorded.",
+          "title": "Text Provenance"
         },
         "enumerated": {
           "default": false,
@@ -2723,6 +2928,145 @@
         "page_no"
       ],
       "title": "PageItem",
+      "type": "object"
+    },
+    "PdfStructureSource": {
+      "description": "The structure element of a tagged PDF that produced this node (ISO 32000-2, 14.7.5).\n\nA node that spans pages gets one entry per page with the same `element_ref`, as `prov` has one\n`ProvenanceItem` per page. A node whose element has no content of its own (a `Sect` group) gets one entry with\n`page_no=None` and no `mcids`. The values come from the parser: the element identity, the depth-first index,\nthe `/S` value before role mapping, the `/NS` URI, the `/ID` entry and the per-cell marked-content ids.",
+      "properties": {
+        "kind": {
+          "const": "pdf_struct",
+          "default": "pdf_struct",
+          "description": "Identifies this type of source.",
+          "title": "Kind",
+          "type": "string"
+        },
+        "element_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Identity of the structure element object as '<num> <gen>'; None for a direct object.",
+          "examples": [
+            "12 0",
+            "345 0"
+          ],
+          "title": "Element Ref"
+        },
+        "order": {
+          "description": "Depth-first index of the element in the structure tree, the logical content order (WTPDF 1.0, 8.2.3).",
+          "examples": [
+            0,
+            17
+          ],
+          "title": "Order",
+          "type": "integer"
+        },
+        "element_type": {
+          "description": "Standard structure type after role mapping.",
+          "examples": [
+            "H2",
+            "P",
+            "Figure",
+            "LI",
+            "Sect"
+          ],
+          "title": "Element Type",
+          "type": "string"
+        },
+        "namespace": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "PDF 2.0 namespace URI of the element type (/NS); None means the default PDF 1.7 namespace.",
+          "examples": [
+            "http://iso.org/pdf2/ssn",
+            "http://www.w3.org/1998/Math/MathML"
+          ],
+          "title": "Namespace"
+        },
+        "authored_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The /S value before role mapping, set only when it differs from `element_type`.",
+          "examples": [
+            "Heading2",
+            "Normal"
+          ],
+          "title": "Authored Type"
+        },
+        "element_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The /ID entry of the element, when present.",
+          "examples": [
+            "node00012345"
+          ],
+          "title": "Element Id"
+        },
+        "page_no": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "1-based page of the content this entry covers; None for a node with no page content.",
+          "examples": [
+            1,
+            12
+          ],
+          "title": "Page No"
+        },
+        "mcids": {
+          "default": [],
+          "description": "Marked-content ids on `page_no` that the node's content was collected from.",
+          "examples": [
+            [
+              3,
+              4,
+              5
+            ]
+          ],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Mcids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "order",
+        "element_type"
+      ],
+      "title": "PdfStructureSource",
       "type": "object"
     },
     "PictureBarChartData": {
@@ -2919,6 +3263,29 @@
           ],
           "default": null
         },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
+        },
         "label": {
           "default": "picture",
           "enum": [
@@ -2934,25 +3301,6 @@
             "$ref": "#/$defs/ProvenanceItem"
           },
           "title": "Prov",
-          "type": "array"
-        },
-        "source": {
-          "default": [],
-          "description": "The provenance of this document item. Currently, it is only used for media track provenance.",
-          "items": {
-            "discriminator": {
-              "mapping": {
-                "track": "#/$defs/TrackSource"
-              },
-              "propertyName": "kind"
-            },
-            "oneOf": [
-              {
-                "$ref": "#/$defs/TrackSource"
-              }
-            ]
-          },
-          "title": "Source",
           "type": "array"
         },
         "comments": {
@@ -3626,6 +3974,29 @@
           ],
           "default": null
         },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
+        },
         "label": {
           "const": "section_header",
           "default": "section_header",
@@ -3638,25 +4009,6 @@
             "$ref": "#/$defs/ProvenanceItem"
           },
           "title": "Prov",
-          "type": "array"
-        },
-        "source": {
-          "default": [],
-          "description": "The provenance of this document item. Currently, it is only used for media track provenance.",
-          "items": {
-            "discriminator": {
-              "mapping": {
-                "track": "#/$defs/TrackSource"
-              },
-              "propertyName": "kind"
-            },
-            "oneOf": [
-              {
-                "$ref": "#/$defs/TrackSource"
-              }
-            ]
-          },
-          "title": "Source",
           "type": "array"
         },
         "comments": {
@@ -3703,6 +4055,26 @@
           ],
           "default": null,
           "title": "Hyperlink"
+        },
+        "text_provenance": {
+          "anyOf": [
+            {
+              "enum": [
+                "encoded",
+                "actual_text",
+                "mixed",
+                "ocr",
+                "generated"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where `text` came from. `encoded`: the text encoded in the source (PDF glyphs through the font's Unicode mapping, or the text of a DOCX, HTML or EPUB element). `actual_text`: the whole of `text` is an /ActualText substitution (ISO 32000-2, 14.9.4). `mixed`: part of `text` is substituted (ligatures, soft hyphens, drop caps). `ocr`: produced by OCR. `generated`: produced by a model rather than read. None means not recorded.",
+          "title": "Text Provenance"
         },
         "level": {
           "default": 1,
@@ -3941,6 +4313,29 @@
           ],
           "default": null
         },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
+        },
         "label": {
           "default": "table",
           "enum": [
@@ -3956,25 +4351,6 @@
             "$ref": "#/$defs/ProvenanceItem"
           },
           "title": "Prov",
-          "type": "array"
-        },
-        "source": {
-          "default": [],
-          "description": "The provenance of this document item. Currently, it is only used for media track provenance.",
-          "items": {
-            "discriminator": {
-              "mapping": {
-                "track": "#/$defs/TrackSource"
-              },
-              "propertyName": "kind"
-            },
-            "oneOf": [
-              {
-                "$ref": "#/$defs/TrackSource"
-              }
-            ]
-          },
-          "title": "Source",
           "type": "array"
         },
         "comments": {
@@ -4158,6 +4534,29 @@
           ],
           "default": null
         },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
+        },
         "label": {
           "enum": [
             "caption",
@@ -4184,25 +4583,6 @@
             "$ref": "#/$defs/ProvenanceItem"
           },
           "title": "Prov",
-          "type": "array"
-        },
-        "source": {
-          "default": [],
-          "description": "The provenance of this document item. Currently, it is only used for media track provenance.",
-          "items": {
-            "discriminator": {
-              "mapping": {
-                "track": "#/$defs/TrackSource"
-              },
-              "propertyName": "kind"
-            },
-            "oneOf": [
-              {
-                "$ref": "#/$defs/TrackSource"
-              }
-            ]
-          },
-          "title": "Source",
           "type": "array"
         },
         "comments": {
@@ -4249,6 +4629,26 @@
           ],
           "default": null,
           "title": "Hyperlink"
+        },
+        "text_provenance": {
+          "anyOf": [
+            {
+              "enum": [
+                "encoded",
+                "actual_text",
+                "mixed",
+                "ocr",
+                "generated"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where `text` came from. `encoded`: the text encoded in the source (PDF glyphs through the font's Unicode mapping, or the text of a DOCX, HTML or EPUB element). `actual_text`: the whole of `text` is an /ActualText substitution (ISO 32000-2, 14.9.4). `mixed`: part of `text` is substituted (ligatures, soft hyphens, drop caps). `ocr`: produced by OCR. `generated`: produced by a model rather than read. None means not recorded.",
+          "title": "Text Provenance"
         }
       },
       "required": [
@@ -4303,6 +4703,29 @@
           ],
           "default": null
         },
+        "source": {
+          "default": [],
+          "description": "What in the original asset produced this node: a media track cue or a tagged-PDF structure element. This is lineage, not position; `ProvenanceItem` records where an item sits on a page.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "pdf_struct": "#/$defs/PdfStructureSource",
+                "track": "#/$defs/TrackSource"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/TrackSource"
+              },
+              {
+                "$ref": "#/$defs/PdfStructureSource"
+              }
+            ]
+          },
+          "title": "Source",
+          "type": "array"
+        },
         "label": {
           "const": "title",
           "default": "title",
@@ -4315,25 +4738,6 @@
             "$ref": "#/$defs/ProvenanceItem"
           },
           "title": "Prov",
-          "type": "array"
-        },
-        "source": {
-          "default": [],
-          "description": "The provenance of this document item. Currently, it is only used for media track provenance.",
-          "items": {
-            "discriminator": {
-              "mapping": {
-                "track": "#/$defs/TrackSource"
-              },
-              "propertyName": "kind"
-            },
-            "oneOf": [
-              {
-                "$ref": "#/$defs/TrackSource"
-              }
-            ]
-          },
-          "title": "Source",
           "type": "array"
         },
         "comments": {
@@ -4380,6 +4784,26 @@
           ],
           "default": null,
           "title": "Hyperlink"
+        },
+        "text_provenance": {
+          "anyOf": [
+            {
+              "enum": [
+                "encoded",
+                "actual_text",
+                "mixed",
+                "ocr",
+                "generated"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where `text` came from. `encoded`: the text encoded in the source (PDF glyphs through the font's Unicode mapping, or the text of a DOCX, HTML or EPUB element). `actual_text`: the whole of `text` is an /ActualText substitution (ISO 32000-2, 14.9.4). `mixed`: part of `text` is substituted (ligatures, soft hyphens, drop caps). `ocr`: produced by OCR. `generated`: produced by a model rather than read. None means not recorded.",
+          "title": "Text Provenance"
         }
       },
       "required": [
@@ -4494,7 +4918,7 @@
       "type": "string"
     },
     "version": {
-      "default": "1.11.0",
+      "default": "1.12.0",
       "pattern": "^(?P<major>0|[1-9]\\d*)\\.(?P<minor>0|[1-9]\\d*)\\.(?P<patch>0|[1-9]\\d*)(?:-(?P<prerelease>(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
       "title": "Version",
       "type": "string"

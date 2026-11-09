@@ -50,6 +50,7 @@ from docling_core.types.doc.common.scalars import (
 )
 from docling_core.types.doc.common.source import (
     BaseSource,
+    PdfStructureSource,
     SourceType,
     TrackSource,
 )

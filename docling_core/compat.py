@@ -194,11 +194,81 @@ def list_projectors() -> list[tuple[int, int]]:
 # ---------------------------------------------------------------------------
 # Projectors — one per schema minor bump within docling-core v2.x
 # ---------------------------------------------------------------------------
-# These cover every schema version step from the current schema (1.11) down
+# These cover every schema version step from the current schema (1.12) down
 # to the oldest v2.x schema (1.5).  Each projector represents the *minimal*
 # structural downgrade that allows an old client's Pydantic model to parse
 # the serialised dict without error.  Full semantic fidelity is not always
 # possible; the goal is a document that validates rather than crashes.
+
+# --- 1.12 → 1.11 ----------------------------------------------------------
+# Schema 1.12 (docling-core v2.107.0, placeholder):
+#   • Added PdfStructureSource (kind "pdf_struct") to the SourceType union.
+#   • Lifted DocItem.source to NodeItem, so groups and the body carry it.
+#   • Added TextItem.text_provenance.
+#   A 1.11 client raises on an unknown "kind" in the discriminated union, on
+#   "source" in a group (GroupItem is extra="forbid") and on
+#   "text_provenance" in a text item.
+#
+# Downgrade strategy:
+#   • Remove "source" entries whose kind is "pdf_struct" from every item and
+#     drop the key when the list becomes empty.
+#   • Remove "source" from groups, body and furniture.
+#   • Remove "text_provenance" from every item.
+# ---------------------------------------------------------------------------
+
+_ITEM_LIST_KEYS_1_12 = (
+    "texts",
+    "pictures",
+    "tables",
+    "key_value_items",
+    "form_items",
+    "field_regions",
+    "field_items",
+)
+
+
+def _downgrade_item_to_1_11(item: dict) -> dict:
+    """Return a copy of *item* safe for schema 1.11 clients."""
+    item = dict(item)
+    item.pop("text_provenance", None)
+    if isinstance(item.get("source"), list):
+        kept = [src for src in item["source"] if not (isinstance(src, dict) and src.get("kind") == "pdf_struct")]
+        if kept:
+            item["source"] = kept
+        else:
+            del item["source"]
+    return item
+
+
+def _downgrade_node_to_1_11(node: dict) -> dict:
+    """Return a copy of a group or root *node* without the ``source`` key."""
+    node = dict(node)
+    node.pop("source", None)
+    return node
+
+
+@register_projector(from_minor=12, to_minor=11)
+def _project_1_12_to_1_11(data: dict) -> dict:
+    """Downgrade a schema 1.12 document dict to schema 1.11.
+
+    Handles:
+    - Removes ``source`` entries of kind ``pdf_struct`` from every item and
+      drops the key when nothing is left.
+    - Removes ``source`` from ``groups``, ``body`` and ``furniture``.
+    - Removes ``text_provenance`` from every item.
+    """
+    data = dict(data)
+
+    for list_key in _ITEM_LIST_KEYS_1_12:
+        data[list_key] = [_downgrade_item_to_1_11(item) for item in data.get(list_key, [])]
+    data["groups"] = [_downgrade_node_to_1_11(group) for group in data.get("groups", [])]
+    for root_key in ("body", "furniture"):
+        if isinstance(data.get(root_key), dict):
+            data[root_key] = _downgrade_node_to_1_11(data[root_key])
+
+    data["version"] = "1.11.0"
+    return data
+
 
 # --- 1.11 → 1.10 ----------------------------------------------------------
 # Schema 1.11 (docling-core v2.106.0): InlineGroup runs carry their own

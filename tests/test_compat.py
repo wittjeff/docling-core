@@ -284,6 +284,122 @@ class TestSchemaSnapshotRendering:
         assert set(schema["$defs"]["FieldItem"]["properties"]) == set(FieldItem.model_fields)
 
 
+class TestProjector_1_12_to_1_11:
+    """Tests for the 1.12 → 1.11 downgrade projector."""
+
+    def _apply(self, data: dict) -> dict:
+        from docling_core.compat import _project_1_12_to_1_11
+
+        return _project_1_12_to_1_11(data)
+
+    @staticmethod
+    def _pdf_struct(order: int, element_type: str, page_no: int | None = None) -> dict:
+        return {"kind": "pdf_struct", "order": order, "element_type": element_type, "page_no": page_no, "mcids": []}
+
+    @staticmethod
+    def _text(self_ref: str, **extra) -> dict:
+        item = {
+            "self_ref": self_ref,
+            "parent": {"$ref": "#/body"},
+            "children": [],
+            "content_layer": "body",
+            "label": "text",
+            "prov": [],
+            "orig": "Hello",
+            "text": "Hello",
+        }
+        item.update(extra)
+        return item
+
+    def test_version_set_to_1_11(self):
+        result = self._apply(_minimal_doc_dict("1.12.0"))
+        assert result["version"] == "1.11.0"
+
+    def test_strips_pdf_struct_sources_and_drops_the_empty_key(self):
+        data = {
+            **_minimal_doc_dict("1.12.0"),
+            "texts": [self._text("#/texts/0", source=[self._pdf_struct(3, "P", 1)])],
+        }
+        (item,) = self._apply(data)["texts"]
+        assert "source" not in item
+
+    def test_keeps_track_sources_beside_a_removed_pdf_struct(self):
+        track = {"kind": "track", "start_time": 1.0, "end_time": 2.0}
+        data = {
+            **_minimal_doc_dict("1.12.0"),
+            "texts": [self._text("#/texts/0", source=[self._pdf_struct(3, "P", 1), track])],
+        }
+        (item,) = self._apply(data)["texts"]
+        assert item["source"] == [track]
+
+    def test_strips_text_provenance(self):
+        data = {**_minimal_doc_dict("1.12.0"), "texts": [self._text("#/texts/0", text_provenance="actual_text")]}
+        (item,) = self._apply(data)["texts"]
+        assert "text_provenance" not in item
+        assert item["text"] == "Hello"
+
+    def test_strips_source_from_groups_and_body(self):
+        data = _minimal_doc_dict("1.12.0")
+        data["body"] = {**data["body"], "source": [self._pdf_struct(0, "Document")]}
+        data["groups"] = [
+            {
+                "self_ref": "#/groups/0",
+                "parent": {"$ref": "#/body"},
+                "children": [],
+                "content_layer": "body",
+                "label": "section",
+                "name": "group",
+                "source": [self._pdf_struct(1, "Sect")],
+            }
+        ]
+        result = self._apply(data)
+        assert "source" not in result["body"]
+        assert "source" not in result["groups"][0]
+
+    def test_does_not_mutate_caller_input(self):
+        data = {
+            **_minimal_doc_dict("1.12.0"),
+            "texts": [self._text("#/texts/0", text_provenance="ocr", source=[self._pdf_struct(3, "P", 1)])],
+        }
+        before = json.loads(json.dumps(data))
+        self._apply(data)
+        assert data == before
+
+    def test_a_populated_document_validates_against_the_1_11_schema(self):
+        """A document built through the public helpers must satisfy 1.11 after projection.
+
+        The generic coverage test only exercises a minimal dict, so it would
+        pass even if this projector stripped nothing.
+        """
+        from docling_core.types.doc import PdfStructureSource, TableData
+        from docling_core.types.doc.labels import GroupLabel
+
+        doc = DoclingDocument(name="tagged")
+        section = doc.add_group(label=GroupLabel.SECTION, source=PdfStructureSource(order=0, element_type="Sect"))
+        text = doc.add_text(
+            label=DocItemLabel.TEXT,
+            text="Body",
+            parent=section,
+            source=PdfStructureSource(order=1, element_type="P", element_ref="12 0", page_no=1, mcids=[0, 1]),
+        )
+        text.text_provenance = "mixed"
+        doc.add_picture(parent=section, source=PdfStructureSource(order=2, element_type="Figure", page_no=1))
+        doc.add_table(
+            data=TableData(), parent=section, source=PdfStructureSource(order=3, element_type="Table", page_no=1)
+        )
+
+        projected = self._apply(json.loads(doc.model_dump_json(by_alias=True)))
+
+        schema = json.loads((_SCHEMAS_DIR / "DoclingDocument_1_11.json").read_text())
+        jsonschema.validate(instance=projected, schema=schema)
+
+        assert "source" not in projected["groups"][0]
+        for key in ("texts", "pictures", "tables"):
+            (item,) = projected[key]
+            assert "source" not in item
+            assert "text_provenance" not in item
+
+
 class TestProjector_1_11_to_1_10:
     """Tests for the 1.11 → 1.10 downgrade projector."""
 

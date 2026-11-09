@@ -2,7 +2,7 @@
 
 import typing
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Annotated, Literal, Optional, Union
 
 from pydantic import AnyUrl, Field
 from typing_extensions import deprecated
@@ -41,6 +41,16 @@ class TextItem(DocItem):
 
     formatting: Formatting | None = None
     hyperlink: AnyUrl | Path | None = Field(union_mode="left_to_right", default=None)
+    text_provenance: Annotated[
+        Literal["encoded", "actual_text", "mixed", "ocr", "generated"] | None,
+        Field(
+            description="Where `text` came from. `encoded`: the text encoded in the source (PDF glyphs through the "
+            "font's Unicode mapping, or the text of a DOCX, HTML or EPUB element). `actual_text`: the whole of "
+            "`text` is an /ActualText substitution (ISO 32000-2, 14.9.4). `mixed`: part of `text` is substituted "
+            "(ligatures, soft hyphens, drop caps). `ocr`: produced by OCR. `generated`: produced by a model rather "
+            "than read. None means not recorded."
+        ),
+    ] = None
 
     def _get_plain_text(self, doc: "DoclingDocument") -> str:
         """Read the item's own text and its descendant text without document-wide scans."""
