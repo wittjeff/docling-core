@@ -34,6 +34,7 @@ from docling_core.types.doc.document import (
     BaseMeta,
     CodeItem,
     CodeMetaField,
+    ConformanceMetaField,
     ContentLayer,
     DescriptionAnnotation,
     DescriptionMetaField,
@@ -346,6 +347,8 @@ class LaTeXMetaSerializer(BaseModel, BaseMetaSerializer):
             return None
 
         kind = name
+        if isinstance(field_val, ConformanceMetaField):
+            return None  # a conformance claim describes the source file, not its content
         if isinstance(field_val, SummaryMetaField | DescriptionMetaField):
             txt = field_val.text
         elif isinstance(field_val, LanguageMetaField):

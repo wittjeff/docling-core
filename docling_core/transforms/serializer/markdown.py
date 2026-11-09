@@ -41,6 +41,7 @@ from docling_core.types.doc import (
     BaseMeta,
     CaptionPlacement,
     CodeItem,
+    ConformanceMetaField,
     ContentLayer,
     CoordOrigin,
     DescriptionAnnotation,
@@ -570,7 +571,10 @@ class MarkdownMetaSerializer(BaseModel, BaseMetaSerializer):
         **kwargs: Any,
     ) -> str | None:
         if (field_val := getattr(meta, name)) is not None:
-            if isinstance(field_val, SummaryMetaField):
+            if isinstance(field_val, ConformanceMetaField):
+                # A conformance claim describes the source file, not its content.
+                return None
+            elif isinstance(field_val, SummaryMetaField):
                 txt = field_val.text
             elif isinstance(field_val, KeywordsMetaField | TopicsMetaField):
                 txt = ", ".join(field_val.values)

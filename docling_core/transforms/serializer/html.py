@@ -49,6 +49,7 @@ from docling_core.types.doc.document import (
     BaseMeta,
     CodeItem,
     CodeMetaField,
+    ConformanceMetaField,
     ContentLayer,
     DescriptionAnnotation,
     DescriptionMetaField,
@@ -1016,7 +1017,11 @@ class HTMLMetaSerializer(BaseModel, BaseMetaSerializer):
         if (field_val := getattr(meta, name)) is not None:
             is_html_markup = False
 
-            if isinstance(field_val, SummaryMetaField):
+            if isinstance(field_val, ConformanceMetaField):
+                # A source file's conformance claim has no HTML element; an HTML twin of a
+                # conformant PDF carries none, so nothing is emitted (not even in <head>).
+                return None
+            elif isinstance(field_val, SummaryMetaField):
                 txt = field_val.text
             elif isinstance(field_val, LanguageMetaField):
                 txt = field_val.code.value
