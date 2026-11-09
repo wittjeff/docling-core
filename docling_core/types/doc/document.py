@@ -78,6 +78,7 @@ from docling_core.types.doc.common.meta import (
     BaseMeta,
     BasePrediction,
     CodeMetaField,
+    ConformanceMetaField,
     DescriptionMetaField,
     EntitiesMetaField,
     EntityMention,

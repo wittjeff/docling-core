@@ -38,6 +38,29 @@
             }
           ]
         },
+        "conformance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConformanceMetaField"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Accessibility conformance the source file declares (tagged flag, PDF/UA and PDF/A identification, PDF Declarations) and whether Docling derived the document from the structure tree. Declarations only; not a validation result. Meaningful on the document-level meta (``DoclingDocument.body.meta``) only.",
+          "examples": [
+            {
+              "declarations": [
+                "http://pdfa.org/declarations/wtpdf/#accessibility1.0"
+              ],
+              "pdfua_part": 2,
+              "pdfua_rev": 2024,
+              "structure_used": true,
+              "tagged": true
+            }
+          ]
+        },
         "entities": {
           "anyOf": [
             {
@@ -567,6 +590,80 @@
         "text"
       ],
       "title": "CodeMetaField",
+      "type": "object"
+    },
+    "ConformanceMetaField": {
+      "additionalProperties": true,
+      "description": "Accessibility conformance the source file declares, and the path Docling took.\n\nEvery field except ``structure_used`` is a claim made by the producer of the\nsource file. None of them is a validation result; validation stays with an\nexternal validator such as veraPDF. Nothing in docling-core or docling gates\non these values.",
+      "properties": {
+        "tagged": {
+          "default": false,
+          "title": "Tagged",
+          "type": "boolean"
+        },
+        "pdfua_part": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pdfua Part"
+        },
+        "pdfua_rev": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pdfua Rev"
+        },
+        "pdfa_part": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pdfa Part"
+        },
+        "pdfa_conformance": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pdfa Conformance"
+        },
+        "declarations": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Declarations",
+          "type": "array"
+        },
+        "structure_used": {
+          "default": false,
+          "title": "Structure Used",
+          "type": "boolean"
+        }
+      },
+      "title": "ConformanceMetaField",
       "type": "object"
     },
     "ContentLayer": {
@@ -1351,6 +1448,29 @@
           "examples": [
             {
               "code": "en"
+            }
+          ]
+        },
+        "conformance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConformanceMetaField"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Accessibility conformance the source file declares (tagged flag, PDF/UA and PDF/A identification, PDF Declarations) and whether Docling derived the document from the structure tree. Declarations only; not a validation result. Meaningful on the document-level meta (``DoclingDocument.body.meta``) only.",
+          "examples": [
+            {
+              "declarations": [
+                "http://pdfa.org/declarations/wtpdf/#accessibility1.0"
+              ],
+              "pdfua_part": 2,
+              "pdfua_rev": 2024,
+              "structure_used": true,
+              "tagged": true
             }
           ]
         },
@@ -3136,6 +3256,29 @@
             }
           ]
         },
+        "conformance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConformanceMetaField"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Accessibility conformance the source file declares (tagged flag, PDF/UA and PDF/A identification, PDF Declarations) and whether Docling derived the document from the structure tree. Declarations only; not a validation result. Meaningful on the document-level meta (``DoclingDocument.body.meta``) only.",
+          "examples": [
+            {
+              "declarations": [
+                "http://pdfa.org/declarations/wtpdf/#accessibility1.0"
+              ],
+              "pdfua_part": 2,
+              "pdfua_rev": 2024,
+              "structure_used": true,
+              "tagged": true
+            }
+          ]
+        },
         "entities": {
           "anyOf": [
             {
@@ -4494,7 +4637,7 @@
       "type": "string"
     },
     "version": {
-      "default": "1.11.0",
+      "default": "1.12.0",
       "pattern": "^(?P<major>0|[1-9]\\d*)\\.(?P<minor>0|[1-9]\\d*)\\.(?P<patch>0|[1-9]\\d*)(?:-(?P<prerelease>(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
       "title": "Version",
       "type": "string"

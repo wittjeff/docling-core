@@ -284,6 +284,97 @@ class TestSchemaSnapshotRendering:
         assert set(schema["$defs"]["FieldItem"]["properties"]) == set(FieldItem.model_fields)
 
 
+class TestProjector_1_12_to_1_11:
+    """Tests for the 1.12 → 1.11 downgrade projector (``BaseMeta.conformance``)."""
+
+    _CONFORMANCE = {
+        "tagged": True,
+        "pdfua_part": 2,
+        "pdfua_rev": 2024,
+        "declarations": ["http://pdfa.org/declarations/wtpdf/#accessibility1.0"],
+        "structure_used": True,
+    }
+
+    def _apply(self, data: dict) -> dict:
+        from docling_core.compat import _project_1_12_to_1_11
+
+        return _project_1_12_to_1_11(data)
+
+    def test_version_set_to_1_11(self):
+        result = self._apply(_minimal_doc_dict("1.12.0"))
+        assert result["version"] == "1.11.0"
+
+    def test_strips_conformance_from_body_meta_and_keeps_the_rest(self):
+        """The body meta loses ``conformance`` only; sibling fields and custom fields survive."""
+        data = _minimal_doc_dict("1.12.0")
+        data["body"]["meta"] = {
+            "summary": {"text": "A document."},
+            "conformance": self._CONFORMANCE,
+            "my_corp__doc_category": "report",
+        }
+        result = self._apply(data)
+        assert result["body"]["meta"] == {
+            "summary": {"text": "A document."},
+            "my_corp__doc_category": "report",
+        }
+
+    def test_strips_conformance_from_every_node_list(self):
+        """A 1.11 client rejects the key on any node, so items and groups are cleaned too."""
+        data = _minimal_doc_dict("1.12.0")
+        data["texts"] = [
+            {
+                "self_ref": "#/texts/0",
+                "parent": {"$ref": "#/body"},
+                "children": [],
+                "content_layer": "body",
+                "label": "text",
+                "orig": "x",
+                "text": "x",
+                "prov": [],
+                "meta": {"conformance": self._CONFORMANCE, "language": {"code": "en"}},
+            }
+        ]
+        data["groups"] = [
+            {
+                "self_ref": "#/groups/0",
+                "parent": {"$ref": "#/body"},
+                "children": [],
+                "content_layer": "body",
+                "label": "unspecified",
+                "name": "group",
+                "meta": {"conformance": self._CONFORMANCE},
+            }
+        ]
+        result = self._apply(data)
+        assert result["texts"][0]["meta"] == {"language": {"code": "en"}}
+        assert result["groups"][0]["meta"] == {}
+
+    def test_projected_document_validates_against_the_1_11_snapshot(self):
+        """End to end: a real document with ``body.meta.conformance`` projects to 1.11 and validates there."""
+        from docling_core.types.doc import BaseMeta, ConformanceMetaField
+
+        doc = DoclingDocument(name="conformance")
+        doc.add_text(label=DocItemLabel.TEXT, text="Tagged content.")
+        doc.body.meta = BaseMeta(conformance=ConformanceMetaField(**self._CONFORMANCE))
+
+        projected = project_to(doc, "1.11.0")
+        dumped = json.loads(projected.model_dump_json(by_alias=True, exclude_none=True))
+
+        assert dumped["version"] == "1.11.0"
+        assert "meta" not in dumped["body"] or "conformance" not in dumped["body"]["meta"]
+        schema = json.loads((_SCHEMAS_DIR / "DoclingDocument_1_11.json").read_text())
+        jsonschema.validate(instance=dumped, schema=schema)
+        # The 1.11 snapshot has no ``conformance`` property, so the field is really gone, not ignored.
+        assert "conformance" not in schema["$defs"]["BaseMeta"]["properties"]
+
+    def test_does_not_mutate_caller_input(self):
+        data = _minimal_doc_dict("1.12.0")
+        data["body"]["meta"] = {"conformance": self._CONFORMANCE}
+        self._apply(data)
+        assert data["version"] == "1.12.0"
+        assert data["body"]["meta"]["conformance"] == self._CONFORMANCE
+
+
 class TestProjector_1_11_to_1_10:
     """Tests for the 1.11 → 1.10 downgrade projector."""
 

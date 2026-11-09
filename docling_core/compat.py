@@ -194,11 +194,69 @@ def list_projectors() -> list[tuple[int, int]]:
 # ---------------------------------------------------------------------------
 # Projectors — one per schema minor bump within docling-core v2.x
 # ---------------------------------------------------------------------------
-# These cover every schema version step from the current schema (1.11) down
+# These cover every schema version step from the current schema (1.12) down
 # to the oldest v2.x schema (1.5).  Each projector represents the *minimal*
 # structural downgrade that allows an old client's Pydantic model to parse
 # the serialised dict without error.  Full semantic fidelity is not always
 # possible; the goal is a document that validates rather than crashes.
+
+# --- 1.12 → 1.11 ----------------------------------------------------------
+# Schema 1.12 (docling-core v2.107.0):
+#   • Added BaseMeta.conformance: ConformanceMetaField | None, the accessibility
+#     conformance a source PDF declares (tagged flag, PDF/UA and PDF/A
+#     identification, PDF Declarations) plus whether the structure path was
+#     used. Meaningful on the document-level meta (``body.meta``) only.
+#   BaseMeta._validate_field_names rejects an extra key without a
+#   ``namespace__`` prefix, so a 1.11 client raises on ``"conformance"``.
+#
+# Downgrade strategy:
+#   • Drop ``meta.conformance`` from every node dict (body, furniture and all
+#     item lists). The claim has no 1.11 equivalent to map onto.
+# ---------------------------------------------------------------------------
+
+_NEW_META_KEYS_1_12 = {"conformance"}
+
+_NODE_LIST_KEYS_1_12 = (
+    "texts",
+    "pictures",
+    "tables",
+    "key_value_items",
+    "form_items",
+    "field_regions",
+    "field_items",
+    "groups",
+)
+
+
+def _downgrade_node_to_1_11(node: dict) -> dict:
+    """Return a copy of *node* with the 1.12 meta keys removed."""
+    node = dict(node)
+    if "meta" in node and isinstance(node["meta"], dict):
+        node["meta"] = _strip_unknown_meta_fields(node["meta"], _NEW_META_KEYS_1_12)
+    return node
+
+
+@register_projector(from_minor=12, to_minor=11)
+def _project_1_12_to_1_11(data: dict) -> dict:
+    """Downgrade a schema 1.12 document dict to schema 1.11.
+
+    Handles:
+    - Strips ``conformance`` from every ``BaseMeta`` dict: the ``body`` and
+      ``furniture`` roots and every node in the item lists.
+    """
+    data = dict(data)
+
+    for root_key in ("body", "furniture"):
+        if isinstance(data.get(root_key), dict):
+            data[root_key] = _downgrade_node_to_1_11(data[root_key])
+
+    for list_key in _NODE_LIST_KEYS_1_12:
+        if list_key in data:
+            data[list_key] = [_downgrade_node_to_1_11(item) for item in data.get(list_key, [])]
+
+    data["version"] = "1.11.0"
+    return data
+
 
 # --- 1.11 → 1.10 ----------------------------------------------------------
 # Schema 1.11 (docling-core v2.106.0): InlineGroup runs carry their own

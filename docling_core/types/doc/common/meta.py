@@ -97,6 +97,46 @@ class LanguageMetaField(BasePrediction):
     code: HumanLanguageLabel
 
 
+class ConformanceMetaField(_ExtraAllowingModel):
+    """Accessibility conformance the source file declares, and the path Docling took.
+
+    Every field except ``structure_used`` is a claim made by the producer of the
+    source file. None of them is a validation result; validation stays with an
+    external validator such as veraPDF. Nothing in docling-core or docling gates
+    on these values.
+    """
+
+    # Declared by the producer.
+    tagged: bool = False
+    """``/MarkInfo`` ``/Marked`` in the document catalog (ISO 32000-2, 14.7.1)."""
+
+    pdfua_part: int | None = None
+    """``pdfuaid:part`` from the XMP packet (ISO 14289-2:2024, clause 5, Table 1). 1 or 2."""
+
+    pdfua_rev: int | None = None
+    """``pdfuaid:rev``, the four-digit revision year. Optional; meaningful for part 2 only.
+    ISO 14289-1 defines no revision property, so a PDF/UA-1 file leaves it ``None``."""
+
+    pdfa_part: int | None = None
+    """``pdfaid:part`` from the XMP packet (ISO 19005 identification schema)."""
+
+    pdfa_conformance: str | None = None
+    """``pdfaid:conformance``, as written: ``A`` or ``B`` (part 1); ``A``, ``B`` or ``U`` (parts 2 and 3);
+    ``E`` or ``F`` (part 4)."""
+
+    declarations: list[str] = []
+    """``pdfd:conformsTo`` URIs of the document-level PDF Declarations, in file order
+    (PDF Declarations, 8.2.1). URIs only; ``pdfd:claimData`` is not modelled. WTPDF 1.0 uses
+    ``http://pdfa.org/declarations/wtpdf/#reuse1.0`` and ``#accessibility1.0``;
+    ISO/TS 32005 uses ``https://pdfa.org/declarations#iso32005``."""
+
+    # Recorded by the pipeline.
+    structure_used: bool = False
+    """True when at least one page of the document was derived from the structure
+    tree instead of the layout model. Per-item attribution is ``NodeItem.source``
+    (``PdfStructureSource``, proposed separately)."""
+
+
 class MetaFieldName(str, Enum):
     """Standard meta field names attached to document nodes.
 
@@ -109,6 +149,9 @@ class MetaFieldName(str, Enum):
 
     LANGUAGE = "language"
     """The detected human language of the node content, expressed as a BCP 47 code (e.g. ``"en"``, ``"de"``)."""
+
+    CONFORMANCE = "conformance"
+    """Accessibility conformance declared by the source file, plus whether the structure path was used."""
 
     ENTITIES = "entities"
     """Named entities extracted from the node text, such as persons, organisations, and locations."""
@@ -192,6 +235,26 @@ class BaseMeta(_ExtraAllowingModel):
         Field(
             description="The detected human language of the node content, expressed as a BCP 47 code.",
             examples=[{"code": "en"}],
+        ),
+    ] = None
+    conformance: Annotated[
+        ConformanceMetaField | None,
+        Field(
+            description=(
+                "Accessibility conformance the source file declares (tagged flag, PDF/UA and PDF/A "
+                "identification, PDF Declarations) and whether Docling derived the document from the "
+                "structure tree. Declarations only; not a validation result. Meaningful on the "
+                "document-level meta (``DoclingDocument.body.meta``) only."
+            ),
+            examples=[
+                {
+                    "tagged": True,
+                    "pdfua_part": 2,
+                    "pdfua_rev": 2024,
+                    "declarations": ["http://pdfa.org/declarations/wtpdf/#accessibility1.0"],
+                    "structure_used": True,
+                }
+            ],
         ),
     ] = None
     entities: Annotated[
